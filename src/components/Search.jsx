@@ -8,8 +8,6 @@ const person = {
 
 const { name, age, location } = person;
 
-console.log(name); // Bruce Wayne
-
 const Search = ({ searchTerm, setSearchTerm}) => {
   return (
     <div className='search'>
