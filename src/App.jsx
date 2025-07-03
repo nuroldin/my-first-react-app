@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import Search from './components/Search.jsx';
+import Spinner from './components/Spinner.jsx';
+import MovieCard from './components/MovieCard.jsx';
+
+let debounceTimer;
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -20,12 +24,12 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = '') => {
     setIsLoading(true);
     setErrorMessage('');
 
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}` : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
 
       if(!response.ok) {
@@ -50,8 +54,13 @@ const App = () => {
   }
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(() => {
+      fetchMovies(searchTerm);
+    }, 1000);
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
   return (
     <main>
@@ -64,15 +73,15 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
         <section className='all-movies'>
-          <h2>All Movies</h2>
+          <h2 className='mt-[40px]'>All Movies</h2>
           {isLoading ? (
-            <p className='text-white'>Loading...</p>
+            <Spinner />
           ) : errorMessage ? (
             <p className='text-red-500'>{errorMessage}</p>
           ) : (
             <ul>
               {movieList.map((movie) => (
-                
+                <MovieCard key={movie.id} movie={movie} />
               ))}
             </ul>
           )}
@@ -82,4 +91,4 @@ const App = () => {
   )
 }
 
-export default App
+export default App;
